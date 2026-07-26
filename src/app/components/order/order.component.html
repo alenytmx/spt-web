@@ -1,0 +1,368 @@
+<div class="page-container">
+
+  <div class="top-actions">
+    <button type="button" class="btn btn-primary" (click)="mostrarFormulario = !mostrarFormulario">
+      {{ mostrarFormulario ? 'Ocultar formulario' : '+ Nueva orden de servicio' }}
+    </button>
+
+    <button type="button" class="btn btn-success" (click)="mostrarFormularioCliente = !mostrarFormularioCliente">
+      {{ mostrarFormularioCliente ? 'Ocultar cliente' : '+ Nuevo cliente' }}
+    </button>
+  </div>
+
+  <!-- FORMULARIO NUEVO CLIENTE -->
+  <div class="main-card animate-fade" *ngIf="mostrarFormularioCliente">
+    <div class="card-header">
+      <div>
+        <p class="subtitle">Gestión de clientes</p>
+        <h2>Nuevo Cliente</h2>
+      </div>
+
+      <span class="badge-header">
+        Nuevo registro
+      </span>
+    </div>
+
+    <form [formGroup]="clienteForm" (ngSubmit)="guardarCliente()" class="form-content">
+
+      <div class="section-title">
+        <span></span>
+        Datos del Cliente
+      </div>
+
+      <div class="form-grid cols-4">
+        <input formControlName="nombres" placeholder="Nombre (s)" class="custom-input">
+        <input formControlName="apellidoPaterno" placeholder="Apellido paterno" class="custom-input">
+        <input formControlName="apellidoMaterno" placeholder="Apellido materno" class="custom-input">
+        <input formControlName="numTelefono" placeholder="Teléfono" class="custom-input">
+      </div>
+
+      <div class="form-grid cols-2 mt">
+        <input formControlName="email" placeholder="Correo electrónico" class="custom-input">
+        <input formControlName="observaciones" placeholder="Observaciones" class="custom-input">
+      </div>
+
+      <div formGroupName="direccion" class="form-grid cols-3 mt">
+        <input formControlName="calle" placeholder="Calle" class="custom-input">
+        <input formControlName="entreCalles" placeholder="Entre calles" class="custom-input">
+        <input formControlName="numInterior" placeholder="No. Interior" class="custom-input">
+        <input formControlName="numExterior" placeholder="No. Exterior" class="custom-input">
+        <input formControlName="colonia" placeholder="Colonia" class="custom-input">
+        <input formControlName="referencias" placeholder="Referencias" class="custom-input">
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">
+          Guardar cliente
+        </button>
+
+        <button type="button" (click)="resetClienteForm()" class="btn btn-secondary">
+          Cancelar
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- FORMULARIO ORDEN DE SERVICIO -->
+  <div class="main-card animate-fade" *ngIf="mostrarFormulario">
+    <div class="card-header">
+      <div>
+        <p class="subtitle">Gestión de órdenes</p>
+        <h2>{{ editando ? 'Editar Orden de Servicio' : 'Nueva Orden de Servicio' }}</h2>
+      </div>
+
+      <span class="badge-header">
+        {{ editando ? 'Modo edición' : 'Nuevo registro' }}
+      </span>
+    </div>
+
+    <form [formGroup]="ordenForm" (ngSubmit)="guardarOrden()" class="form-content">
+
+      <div class="section-title">
+        <span></span>
+        Información general
+      </div>
+
+      <div class="form-grid cols-3">
+        <div class="form-group">
+          <label>Fecha:</label>
+          <input type="date" formControlName="fecha" class="custom-input">
+        </div>
+
+        <div class="form-group">
+          <label>Usuario:</label>
+          <input type="text" formControlName="usuario" class="custom-input">
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de orden de servicio:</label>
+          <select formControlName="tipoOrden" class="custom-input">
+            <option value="">Seleccione</option>
+            <option *ngFor="let tipo of tiposOrden" [value]="tipo">
+              {{ tipo }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- BUSCADOR DE CLIENTE -->
+      <div class="inner-card">
+        <div class="section-title">
+          <span></span>
+          Buscar cliente registrado
+        </div>
+
+        <input
+          type="text"
+          class="custom-input"
+          placeholder="Buscar por código, nombre o teléfono..."
+          [(ngModel)]="searchCliente"
+          [ngModelOptions]="{ standalone: true }"
+          (input)="buscarCliente()"
+        >
+
+        <div class="cliente-results" *ngIf="clientesEncontrados.length > 0">
+          <div
+            class="cliente-result"
+            *ngFor="let cliente of clientesEncontrados"
+            (click)="seleccionarCliente(cliente)"
+          >
+            <strong>{{ cliente.customerId }}</strong>
+            -
+            {{ cliente.nombres }} {{ cliente.apellidoPaterno }}
+            |
+            {{ cliente.numTelefono }}
+          </div>
+        </div>
+      </div>
+
+      <!-- DATOS DEL CLIENTE EN ORDEN -->
+      <div formGroupName="cliente" class="inner-card">
+        <div class="section-title">
+          <span></span>
+          Datos del Cliente
+        </div>
+
+        <div class="form-grid cols-4">
+          <input formControlName="nombres" placeholder="Nombre (s)" class="custom-input">
+          <input formControlName="apellidoPaterno" placeholder="Apellido paterno" class="custom-input">
+          <input formControlName="apellidoMaterno" placeholder="Apellido materno" class="custom-input">
+          <input formControlName="numTelefono" placeholder="Teléfono" class="custom-input">
+        </div>
+
+        <div formGroupName="direccion" class="form-grid cols-3 mt">
+          <input formControlName="calle" placeholder="Calle" class="custom-input">
+          <input formControlName="entreCalles" placeholder="Entre calles" class="custom-input">
+          <input formControlName="numInterior" placeholder="No. Interior" class="custom-input">
+          <input formControlName="numExterior" placeholder="No. Exterior" class="custom-input">
+          <input formControlName="colonia" placeholder="Colonia" class="custom-input">
+          <input formControlName="referencias" placeholder="Referencias" class="custom-input">
+        </div>
+      </div>
+
+      <!-- EQUIPOS -->
+      <div class="inner-card">
+        <div class="equipment-header">
+          <div class="section-title">
+            <span></span>
+            Equipos
+          </div>
+
+          <button type="button" (click)="agregarEquipo()" class="btn btn-success">
+            + Agregar equipo
+          </button>
+        </div>
+
+        <div formArrayName="equipos" class="equipment-list">
+          <div
+            *ngFor="let equipo of equipos.controls; let i = index"
+            [formGroupName]="i"
+            class="equipment-card animate-slide"
+          >
+            <input formControlName="tipoEquipo" placeholder="Tipo equipo" class="custom-input">
+            <input formControlName="marca" placeholder="Marca" class="custom-input">
+            <input formControlName="modelo" placeholder="Modelo" class="custom-input">
+            <input formControlName="numSerie" placeholder="No. serie" class="custom-input">
+            <input formControlName="observaciones" placeholder="Observaciones" class="custom-input">
+            <input formControlName="accesoriosTexto" placeholder="Accesorios separados por coma" class="custom-input">
+
+            <button type="button" (click)="eliminarEquipo(i)" class="btn btn-danger">
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid cols-2">
+        <div class="form-group">
+          <label>Total servicio:</label>
+          <input type="number" formControlName="totalServicio" class="custom-input">
+        </div>
+
+        <div class="form-group">
+          <label>Estatus de la orden:</label>
+          <select formControlName="estado" class="custom-input">
+            <option *ngFor="let estado of estados" [value]="estado">
+              {{ estado }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">
+          {{ editando ? 'Actualizar orden' : 'Guardar orden' }}
+        </button>
+
+        <button type="button" (click)="resetForm()" class="btn btn-secondary">
+          Cancelar
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- TABLA ÓRDENES -->
+  <div class="main-card animate-fade">
+    <div class="card-header">
+      <div>
+        <p class="subtitle">Historial</p>
+        <h2>Órdenes de Servicio</h2>
+      </div>
+    </div>
+
+    <div class="table-tools">
+      <input
+        type="text"
+        class="custom-input"
+        placeholder="Buscar por folio, cliente, teléfono, tipo o estado..."
+        [(ngModel)]="searchTerm"
+        (input)="currentPage = 1"
+      >
+
+      <select
+        class="custom-input"
+        [(ngModel)]="filterEstado"
+        (change)="currentPage = 1"
+      >
+        <option value="">Todos los estados</option>
+        <option *ngFor="let estado of estados" [value]="estado">
+          {{ estado }}
+        </option>
+      </select>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Folio</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Teléfono</th>
+            <th>Tipo</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let orden of paginatedOrdenes">
+            <td class="folio">{{ orden.numFolio }}</td>
+            <td>{{ orden.fecha | date:'dd/MM/yyyy' }}</td>
+            <td>
+              {{ orden.cliente?.nombres }}
+              {{ orden.cliente?.apellidoPaterno }}
+            </td>
+            <td>{{ orden.cliente?.numTelefono }}</td>
+            <td>{{ orden.tipoOrden }}</td>
+            <td class="money">
+              {{ orden.totalServicio | currency:'MXN':'symbol':'1.2-2' }}
+            </td>
+            <td>
+              <span
+                class="status"
+                [ngClass]="{
+                  'status-pending': orden.estado === 'Pendiente',
+                  'status-process': orden.estado === 'En proceso',
+                  'status-done': orden.estado === 'Finalizado',
+                  'status-cancel': orden.estado === 'Cancelado'
+                }"
+              >
+                {{ orden.estado }}
+              </span>
+            </td>
+
+            <td class="table-actions">
+              <button
+                *ngIf="orden._id"
+                type="button"
+                (click)="editarOrden(orden)"
+                class="btn-table btn-edit"
+              >
+                Editar
+              </button>
+
+              <button
+                *ngIf="orden._id"
+                type="button"
+                (click)="eliminarOrden(orden._id)"
+                class="btn-table btn-delete"
+              >
+                Eliminar
+              </button>
+
+              <button
+                *ngIf="orden._id"
+                type="button"
+                (click)="verPdfOrden(orden._id)"
+                class="btn-table btn-pdf"
+              >
+                PDF
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredOrdenes.length === 0">
+            <td colspan="8" class="empty">
+              No hay órdenes registradas
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination" *ngIf="filteredOrdenes.length > itemsPerPage">
+      <button
+        type="button"
+        class="btn-table"
+        [disabled]="currentPage === 1"
+        (click)="prevPage()"
+      >
+        Anterior
+      </button>
+
+      <button
+        type="button"
+        class="btn-table"
+        *ngFor="let page of totalPagesArray"
+        [class.active-page]="page === currentPage"
+        (click)="goToPage(page)"
+      >
+        {{ page }}
+      </button>
+
+      <button
+        type="button"
+        class="btn-table"
+        [disabled]="currentPage === totalPages"
+        (click)="nextPage()"
+      >
+        Siguiente
+      </button>
+    </div>
+  </div>
+
+</div>
